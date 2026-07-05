@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🀄 Mahjong Wins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mahjong Wins">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#cc1f8a;--red-light:#fce8f5;--red-dark:#96146a;
+  --gold:#f5a623;--gold-light:#fef3dc;--gold-dark:#c47d00;
+  --teal:#00b8a0;--teal-light:#d6f5f1;--teal-dark:#007a6b;
+  --purple:#7c4dff;--purple-light:#ede7ff;--purple-dark:#5a2fd4;
+  --green:#2e7d32;--green-light:#e8f5e9;--green-dark:#1b5e20;
+  --navy:#1a1f3a;--cream:#fdf8f0;--white:#ffffff;
+  --text:#1a1f3a;--text-mid:#4a5080;--text-soft:#8890b8;
+  --shadow:0 4px 24px rgba(26,31,58,0.12);
+  --shadow-lg:0 8px 40px rgba(26,31,58,0.18);
+  --r:16px;--r-sm:10px;--r-xs:6px;
+  --font:'Outfit',sans-serif;
+}
+body{font-family:var(--font);background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle at 15% 20%,rgba(124,77,255,0.07) 0%,transparent 50%),
+    radial-gradient(circle at 85% 80%,rgba(0,184,160,0.07) 0%,transparent 50%),
+    radial-gradient(circle at 50% 50%,rgba(204,31,138,0.04) 0%,transparent 60%);}
+.wrap{max-width:700px;margin:0 auto;padding:0 1rem 5rem;position:relative;z-index:1}
+/* Header */
+.header{padding:2rem 0 1.5rem;text-align:center}
+.header h1{font-size:28px;font-weight:700;color:#ff1493;letter-spacing:-0.5px;font-family:'Playfair Display',serif;font-style:italic}
+.header p{font-size:14px;color:var(--text-soft);margin-top:4px}
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;background:var(--white);border-radius:var(--r);padding:6px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tab{flex:0 0 auto;padding:10px 16px;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all 0.2s;color:var(--text-soft);background:transparent;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab.active.t-calendar{background:var(--purple);color:var(--white);box-shadow:0 2px 12px rgba(124,77,255,0.35)}
+.tab.active.t-insights{background:var(--gold);color:var(--white);box-shadow:0 2px 12px rgba(245,166,35,0.35)}
+.tab.active.t-players{background:var(--teal);color:var(--white);box-shadow:0 2px 12px rgba(0,184,160,0.35)}
+.tab:hover:not(.active){background:var(--cream);color:var(--text)}
+.section{display:none}.section.active{display:block}
+/* Sec header */
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
+.sec-icon{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sec-header h2{font-size:18px;font-weight:700;color:var(--navy)}
+.sec-header p{font-size:13px;color:var(--text-soft);margin-top:1px}
+/* Calendar */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-month{font-size:18px;font-weight:700;color:var(--navy)}
+.cal-nav-btn{background:none;border:1.5px solid rgba(26,31,58,0.15);border-radius:var(--r-xs);padding:6px 12px;cursor:pointer;font-size:16px;color:var(--text-mid);font-family:var(--font)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:1.5rem}
+.cal-day-header{text-align:center;font-size:11px;font-weight:700;color:var(--text-soft);padding:6px 0;text-transform:uppercase}
+.cal-day{min-height:44px;border-radius:var(--r-xs);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:default}
+.cal-day.other-month{opacity:0.3}
+.cal-day.today .cal-day-num{background:var(--red);color:var(--white);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+.cal-day.has-event{background:var(--purple-light);cursor:pointer}
+.cal-day.has-event:hover{background:var(--purple)}
+.cal-day.has-event:hover .cal-day-num{color:var(--white)}
+.cal-day.has-event:hover .cal-dot{background:var(--white)}
+.cal-day-num{font-size:14px;font-weight:600;color:var(--navy)}
+.cal-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:2px}
+.cal-upcoming{margin-top:0.5rem}
+.cal-upcoming-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-soft);margin-bottom:0.75rem}
+.cal-event-card{background:var(--white);border-radius:var(--r-sm);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border-left:4px solid var(--purple)}
+.cal-event-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.cal-event-date{font-size:12px;font-weight:700;color:var(--purple);margin-bottom:3px}
+.cal-event-host{font-size:13px;color:var(--text-soft);display:flex;align-items:center;gap:4px;margin-bottom:5px}
+.cal-event-pills{display:flex;gap:4px;flex-wrap:wrap}
+.stat-pill{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px}
+.stat-pill.wins{background:var(--gold-light);color:var(--gold-dark)}
+.stat-pill.players{background:var(--teal-light);color:var(--teal-dark)}
+/* Add event btn */
+.add-event-btn{width:100%;padding:14px;border:2px dashed rgba(124,77,255,0.3);border-radius:var(--r-sm);background:transparent;font-size:14px;font-weight:600;font-family:var(--font);color:var(--purple);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:1rem;transition:all 0.15s}
+.add-event-btn:hover{background:var(--purple-light);border-color:var(--purple)}
+/* Players tab */
+.player-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border-radius:var(--r-sm);box-shadow:var(--shadow);margin-bottom:8px}
+.player-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--red));color:var(--white);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.player-name{flex:1;font-size:14px;font-weight:700;color:var(--navy)}
+.player-actions{display:flex;gap:6px}
+.icon-btn{background:none;border:1.5px solid rgba(26,31,58,0.12);border-radius:var(--r-xs);padding:6px 8px;cursor:pointer;color:var(--text-soft);font-size:14px;transition:all 0.15s}
+.icon-btn.danger:hover{background:var(--red-light);color:var(--red);border-color:var(--red)}
+.icon-btn.edit-btn:hover{background:var(--purple-light);color:var(--purple);border-color:var(--purple)}
+.add-player-btn{width:100%;padding:14px;border:2px dashed rgba(0,184,160,0.3);border-radius:var(--r-sm);background:transparent;font-size:14px;font-weight:600;font-family:var(--font);color:var(--teal);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:all 0.15s}
+.add-player-btn:hover{background:var(--teal-light)}
+/* Insights */
+.leaderboard-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border-radius:var(--r-sm);box-shadow:var(--shadow);margin-bottom:8px}
+.rank-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.rank-1{background:linear-gradient(135deg,#f5a623,#f7c85a);color:white}
+.rank-2{background:linear-gradient(135deg,#9e9e9e,#bdbdbd);color:white}
+.rank-3{background:linear-gradient(135deg,#cd7f32,#e8a060);color:white}
+.rank-other{background:var(--purple-light);color:var(--purple-dark)}
+.leaderboard-name{flex:1;font-size:14px;font-weight:700;color:var(--navy)}
+.leaderboard-wins{font-size:20px;font-weight:800;color:var(--navy);margin-right:4px}
+.leaderboard-wins-label{font-size:11px;color:var(--text-soft)}
+.bird-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.bird-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:flex;align-items:center;gap:3px}
+.bird-badge.earned{background:#e8f5e9;color:#2e7d32}
+.bird-badge.pending{background:#fce8f5;color:#96146a}
+.bird-badge.locked{background:rgba(26,31,58,0.06);color:var(--text-soft)}
+.bird-received-check{width:18px;height:18px;cursor:pointer;accent-color:var(--green)}
+/* Modals */
+.modal-bg{position:fixed;inset:0;background:rgba(26,31,58,0.55);display:flex;align-items:flex-end;justify-content:center;z-index:200;visibility:hidden;opacity:0;transition:opacity 0.2s,visibility 0.2s;backdrop-filter:blur(3px)}
+.modal-bg.open{visibility:visible;opacity:1}
+.modal{background:var(--white);border-radius:20px 20px 0 0;padding:1.75rem;width:100%;max-width:500px;box-shadow:var(--shadow-lg);max-height:92vh;overflow-y:auto;display:flex;flex-direction:column}
+.modal-handle{width:40px;height:4px;background:rgba(26,31,58,0.15);border-radius:2px;margin:0 auto 1.25rem}
+.modal-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:1.25rem}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:2px solid rgba(26,31,58,0.1);border-radius:var(--r-sm);background:var(--cream);font-size:14px;font-family:var(--font);color:var(--text);outline:none;transition:border-color 0.2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--purple);background:var(--white)}
+.modal-btns{display:flex;gap:8px;margin-top:1.5rem;position:sticky;bottom:-1.75rem;background:var(--white);padding:12px 0 1.75rem;margin-bottom:-1.75rem;flex-shrink:0}
+.modal-btns button{flex:1;padding:14px;border-radius:var(--r-sm);cursor:pointer;font-size:14px;font-weight:700;font-family:var(--font);transition:all 0.18s}
+.btn-cancel{background:transparent;border:2px solid rgba(26,31,58,0.12);color:var(--text-soft)}
+.btn-primary{background:var(--purple);color:var(--white);border:none;box-shadow:0 3px 12px rgba(124,77,255,0.3)}
+/* Win rows in event modal */
+.win-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:var(--cream);padding:8px 10px;border-radius:var(--r-xs)}
+.win-row select{flex:1;padding:7px 10px;border:2px solid rgba(26,31,58,0.1);border-radius:var(--r-xs);font-size:14px;font-family:var(--font);color:var(--navy);outline:none;background:var(--white)}
+.win-row input[type="number"]{width:70px;padding:7px 10px;border:2px solid rgba(26,31,58,0.1);border-radius:var(--r-xs);font-size:14px;font-family:var(--font);color:var(--navy);text-align:center;outline:none;background:var(--white)}
+.win-row-label{font-size:12px;color:var(--text-soft);white-space:nowrap}
+.win-remove-btn{background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:16px;padding:4px}
+.add-win-row-btn{width:100%;padding:8px;border:1.5px dashed rgba(124,77,255,0.3);border-radius:var(--r-xs);background:none;font-size:12px;font-weight:600;font-family:var(--font);color:var(--purple);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px}
+.add-win-row-btn:hover{background:var(--purple-light)}
+/* Event detail popup */
+.event-detail-modal .modal{border-radius:20px 20px 0 0}
+.event-detail-header{background:linear-gradient(135deg,var(--purple-light),var(--red-light));border-radius:16px;padding:16px;margin-bottom:1rem;text-align:center}
+.event-detail-date{font-size:18px;font-weight:700;color:var(--purple-dark);margin-bottom:4px}
+.event-detail-host{font-size:13px;color:var(--text-soft)}
+.event-wins-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.event-win-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--cream);border-radius:var(--r-xs)}
+.event-win-name{font-size:14px;font-weight:600;color:var(--navy)}
+.event-win-count{font-size:16px;font-weight:800;color:var(--gold-dark);background:var(--gold-light);padding:3px 12px;border-radius:20px}
+/* Empty */
+.empty{text-align:center;padding:2.5rem 1rem}
+.empty-icon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-size:24px}
+.empty h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.empty p{font-size:13px;color:var(--text-soft)}
+
+.tab.active.t-attendance{background:var(--teal);color:var(--white);box-shadow:0 2px 12px rgba(0,184,160,0.35)}
+.attendance-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border-radius:var(--r-sm);box-shadow:var(--shadow);margin-bottom:8px}
+.attendance-bar-wrap{flex:1;background:rgba(26,31,58,0.06);border-radius:20px;height:8px;overflow:hidden}
+.attendance-bar{height:8px;border-radius:20px;background:linear-gradient(90deg,var(--teal),var(--purple));transition:width 0.4s}
+.attendance-count{font-size:18px;font-weight:800;color:var(--navy);min-width:32px;text-align:right}
+.attendance-pct{font-size:11px;color:var(--text-soft);min-width:36px;text-align:right}
+
+
+.insights-group-btn{flex:1;padding:10px;border:2px solid rgba(26,31,58,0.12);border-radius:var(--r-sm);font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;background:var(--white);color:var(--text-soft);transition:all 0.2s}
+.insights-group-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+
+.tile-deco{font-size:1.4rem;opacity:0.15;position:fixed;pointer-events:none;z-index:0;user-select:none}
+</style>
+</head>
+<body>
+<div class="tile-deco" style="top:5%;left:2%;font-size:3rem;transform:rotate(-15deg)">🀇</div>
+<div class="tile-deco" style="top:60%;right:2%;font-size:3rem;transform:rotate(20deg)">🀀</div>
+
+<div class="wrap">
+  <div class="header">
+    <h1>Mahjong Wins</h1>
+    <p>Track every win, every game night</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab t-calendar active" id="tab-btn-calendar"><i class="ti ti-calendar"></i> Calendar</button>
+    <button class="tab t-insights" id="tab-btn-insights"><i class="ti ti-trophy"></i> Insights</button>
+    <button class="tab t-attendance" id="tab-btn-attendance"><i class="ti ti-calendar-stats"></i> Attendance</button>
+    <button class="tab t-players" id="tab-btn-players"><i class="ti ti-users"></i> Players</button>
+  </div>
+
+  <!-- CALENDAR -->
+  <div id="tab-calendar" class="section active">
+    <div class="sec-header">
+      <div class="sec-icon" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-calendar"></i></div>
+      <div><h2>Game Calendar</h2><p>Tap a date to view or add events</p></div>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="cal-prev">‹</button>
+      <div class="cal-month" id="cal-month-label"></div>
+      <button class="cal-nav-btn" id="cal-next">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <button class="add-event-btn" id="add-event-btn"><i class="ti ti-plus"></i> Add Game Night</button>
+    <div class="cal-upcoming">
+      <div class="cal-upcoming-title">Recent & Upcoming Events</div>
+      <div id="cal-events-list"></div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div id="tab-insights" class="section">
+    <div class="sec-header">
+      <div class="sec-icon" style="background:var(--gold-light);color:var(--gold-dark)"><i class="ti ti-trophy"></i></div>
+      <div><h2>Win Leaderboard</h2><p>Monday nights vs other nights — tracked separately</p></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <button class="insights-group-btn active" id="insights-btn-monday" onclick="setInsightsGroup('monday')">🌙 Monday Nights</button>
+      <button class="insights-group-btn" id="insights-btn-other" onclick="setInsightsGroup('other')">📅 Other Nights</button>
+    </div>
+    <div id="leaderboard-list"></div>
+    <div class="empty" id="leaderboard-empty" style="display:none">
+      <div class="empty-icon" style="background:var(--gold-light)"><i class="ti ti-trophy" style="color:var(--gold-dark)"></i></div>
+      <h3>No wins recorded yet</h3>
+      <p>Add game nights in the Calendar tab to start tracking wins!</p>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE INSIGHTS -->
+  <div id="tab-attendance" class="section">
+    <div class="sec-header">
+      <div class="sec-icon" style="background:var(--teal-light);color:var(--teal)"><i class="ti ti-calendar-stats"></i></div>
+      <div><h2>Attendance Insights</h2><p>Monday nights vs other nights — tracked separately</p></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <button class="insights-group-btn active" id="att-btn-monday" onclick="setAttGroup('monday')">🌙 Monday Nights</button>
+      <button class="insights-group-btn" id="att-btn-other" onclick="setAttGroup('other')">📅 Other Nights</button>
+    </div>
+    <div id="attendance-list"></div>
+    <div class="empty" id="attendance-empty" style="display:none">
+      <div class="empty-icon" style="background:var(--teal-light)"><i class="ti ti-calendar-stats" style="color:var(--teal)"></i></div>
+      <h3>No attendance data yet</h3>
+      <p>Add attendees to your game night events to see insights here!</p>
+    </div>
+  </div>
+
+  <!-- PLAYERS -->
+  <div id="tab-players" class="section">
+    <div class="sec-header">
+      <div class="sec-icon" style="background:var(--teal-light);color:var(--teal)"><i class="ti ti-users"></i></div>
+      <div><h2>Players</h2><p>Master list of all players</p></div>
+    </div>
+    <div id="players-list"></div>
+    <button class="add-player-btn" id="add-player-btn"><i class="ti ti-user-plus"></i> Add Player</button>
+    <div class="empty" id="players-empty" style="display:none">
+      <div class="empty-icon" style="background:var(--teal-light)"><i class="ti ti-users" style="color:var(--teal)"></i></div>
+      <h3>No players yet</h3>
+      <p>Add your players to start tracking wins!</p>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER MODAL -->
+<div class="modal-bg" id="player-modal-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="player-modal-title">Add Player</div>
+    <div class="field"><label for="player-name">Name</label><input type="text" id="player-name" placeholder="e.g. Sarah"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="player-modal-cancel">Cancel</button>
+      <button class="btn-primary" id="player-modal-save">Save Player</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-bg" id="event-modal-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="event-modal-title">Add Game Night</div>
+    <div class="field"><label for="event-date">Date</label><input type="date" id="event-date"></div>
+    <div class="field"><label for="event-host">Host</label><input type="text" id="event-host" placeholder="Who hosted?"></div>
+    <div class="field"><label for="event-location">Location</label><input type="text" id="event-location" placeholder="Where was it held?"></div>
+    <div class="field">
+      <label>Wins</label>
+      <div id="win-rows"></div>
+      <button type="button" class="add-win-row-btn" id="add-win-row-btn"><i class="ti ti-plus"></i> Add player wins</button>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Attendees</label>
+      <div id="attendee-rows"></div>
+      <button type="button" class="add-win-row-btn" id="add-attendee-btn"><i class="ti ti-plus"></i> Add attendee</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="event-modal-cancel">Cancel</button>
+      <button class="btn-primary" id="event-modal-save">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT DETAIL MODAL -->
+<div class="modal-bg event-detail-modal" id="event-detail-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="event-detail-content"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="event-detail-close">Close</button>
+      <button class="btn-primary" id="event-detail-edit" style="background:var(--purple)">Edit</button>
+      <button class="btn-primary" id="event-detail-delete" style="background:var(--red);box-shadow:0 3px 12px rgba(204,31,138,0.3)"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const SUPABASE_URL = 'https://roeuahrhqshwhbtmqwtg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6_DivpGVt6mdob1SrX5L8g_Vd6QOACf';
+const RECORD_ID = 'mahjong_wins';
+
+// ── State ───────────────────────────────────────────────
+let state = { players:[], events:[], birdReceived:{} };
+// birdReceived: { playerId: { 25: true/false, 50: true/false, 75: true/false } }
+
+// ── Utilities ───────────────────────────────────────────
+let _uidCounter = 0;
+function uid(){ return Date.now().toString(36)+(++_uidCounter).toString(36)+Math.random().toString(36).slice(2,6); }
+
+function fmtDate(d){
+  if(!d) return '';
+  const [y,m,day]=d.split('-');
+  return new Date(y,m-1,day).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+
+function fmtDateShort(d){
+  if(!d) return '';
+  const [y,m,day]=d.split('-');
+  return new Date(y,m-1,day).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function todayStr(){
+  const t=new Date();
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+}
+
+// ── Save / Load ─────────────────────────────────────────
+async function save(){
+  try{ localStorage.setItem('mj_wins', JSON.stringify(state)); }catch(e){}
+  try{
+    const json = JSON.stringify(state);
+    const patch = await fetch(SUPABASE_URL+'/rest/v1/collection?id=eq.'+RECORD_ID,{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation,count=exact'},
+      body:JSON.stringify({data:json})
+    });
+    if(patch.ok){
+      const rows = await patch.json().catch(()=>[]);
+      if(!Array.isArray(rows)||rows.length===0){
+        await fetch(SUPABASE_URL+'/rest/v1/collection',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({id:RECORD_ID,data:json})
+        });
+      }
+    }
+  }catch(e){ console.warn('Save error:',e); }
+}
+
+async function load(){
+  try{
+    const r = await fetch(SUPABASE_URL+'/rest/v1/collection?id=eq.'+RECORD_ID,{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    if(r.ok){
+      const rows = await r.json();
+      if(rows.length>0){ state={players:[],events:[],birdReceived:{}, ...JSON.parse(rows[0].data)}; return; }
+    }
+  }catch(e){}
+  // Fallback to localStorage
+  try{
+    const local = localStorage.getItem('mj_wins');
+    if(local) state={players:[],events:[],birdReceived:{}, ...JSON.parse(local)};
+  }catch(e){}
+}
+
+// ── Tabs ────────────────────────────────────────────────
+['calendar','insights','attendance','players'].forEach(name=>{
+  document.getElementById('tab-btn-'+name).addEventListener('click',()=>showTab(name));
+});
+function showTab(name){
+  ['calendar','insights','attendance','players'].forEach(t=>{
+    document.getElementById('tab-btn-'+t).classList.toggle('active',t===name);
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='calendar') renderCalendar();
+  if(name==='insights') renderInsights();
+  if(name==='attendance') renderAttendance();
+  if(name==='players') renderPlayers();
+}
+
+// ── Players ─────────────────────────────────────────────
+const playerModalBg = document.getElementById('player-modal-bg');
+playerModalBg.addEventListener('click',e=>{ if(e.target===playerModalBg) closePlayerModal(); });
+document.getElementById('player-modal-cancel').addEventListener('click',closePlayerModal);
+function closePlayerModal(){ playerModalBg.classList.remove('open'); }
+
+let playerEditId = null;
+function openPlayerModal(editId){
+  playerEditId = editId||null;
+  const existing = editId ? state.players.find(p=>p.id===editId) : null;
+  document.getElementById('player-modal-title').textContent = existing ? 'Edit Player' : 'Add Player';
+  document.getElementById('player-name').value = existing?.name||'';
+  playerModalBg.classList.add('open');
+  setTimeout(()=>document.getElementById('player-name').focus(),100);
+}
+
+document.getElementById('player-modal-save').addEventListener('click',function(){
+  const name = document.getElementById('player-name').value.trim();
+  if(!name){ alert('Please enter a name.'); return; }
+  if(playerEditId){
+    const p=state.players.find(x=>x.id===playerEditId);
+    if(p) p.name=name;
+  } else {
+    state.players.push({id:uid(),name});
+  }
+  save().catch(e=>console.warn(e));
+  closePlayerModal();
+  renderPlayers();
+});
+
+document.getElementById('add-player-btn').addEventListener('click',()=>openPlayerModal());
+
+function renderPlayers(){
+  const list = document.getElementById('players-list');
+  const empty = document.getElementById('players-empty');
+  const sorted = [...state.players].sort((a,b)=>a.name.localeCompare(b.name));
+  if(!sorted.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML='';
+  sorted.forEach(p=>{
+    const wins = getTotalWins(p.id);
+    const row = document.createElement('div');
+    row.className='player-row';
+    row.innerHTML=`
+      <div class="player-avatar">${p.name.charAt(0).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="player-name">${p.name}</div>
+        <div style="font-size:12px;color:var(--text-soft)">${wins} total win${wins!==1?'s':''}</div>
+      </div>
+      <div class="player-actions">
+        <button class="icon-btn edit-btn"><i class="ti ti-edit"></i></button>
+        <button class="icon-btn danger"><i class="ti ti-trash"></i></button>
+      </div>`;
+    row.querySelector('.edit-btn').addEventListener('click',()=>openPlayerModal(p.id));
+    row.querySelector('.danger').addEventListener('click',()=>{
+      if(confirm('Delete '+p.name+'? This will not delete their win records.')) {
+        state.players=state.players.filter(x=>x.id!==p.id);
+        save().catch(e=>console.warn(e));
+        renderPlayers();
+      }
+    });
+    list.appendChild(row);
+  });
+}
+
+// ── Win Helpers ─────────────────────────────────────────
+function getTotalWins(playerId){
+  return (state.events||[]).reduce((sum,ev)=>{
+    const w = (ev.wins||[]).find(x=>x.playerId===playerId);
+    return sum + (w?w.count:0);
+  },0);
+}
+
+const BIRD_LEVELS = [
+  {threshold:25, label:'Small Glass Bird', emoji:'🐦'},
+  {threshold:50, label:'Medium Glass Bird', emoji:'🐦‍🔥'},
+  {threshold:75, label:'Large Glass Bird',  emoji:'🦅'},
+];
+
+// ── Events / Calendar ───────────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+document.getElementById('cal-prev').addEventListener('click',()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); });
+document.getElementById('cal-next').addEventListener('click',()=>{ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); });
+document.getElementById('add-event-btn').addEventListener('click',()=>openEventModal());
+
+function renderCalendar(){
+  const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('cal-month-label').textContent = MONTH_NAMES[calMonth]+' '+calYear;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML='';
+  DAY_NAMES.forEach(d=>{
+    const h=document.createElement('div'); h.className='cal-day-header'; h.textContent=d; grid.appendChild(h);
+  });
+
+  const today = new Date();
+  const firstDay = new Date(calYear,calMonth,1).getDay();
+  const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev = new Date(calYear,calMonth,0).getDate();
+
+  const eventsByDate = {};
+  (state.events||[]).forEach(ev=>{ if(ev.date){ if(!eventsByDate[ev.date]) eventsByDate[ev.date]=[]; eventsByDate[ev.date].push(ev); } });
+
+  for(let i=firstDay-1;i>=0;i--){
+    const d=document.createElement('div'); d.className='cal-day other-month';
+    d.innerHTML=`<span class="cal-day-num">${daysInPrev-i}</span>`; grid.appendChild(d);
+  }
+  for(let day=1;day<=daysInMonth;day++){
+    const dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    const events=eventsByDate[dateStr]||[];
+    const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===day;
+    const d=document.createElement('div');
+    d.className='cal-day'+(events.length?' has-event':'')+(isToday?' today':'');
+    d.innerHTML=`<span class="cal-day-num">${day}</span>${events.length?'<div class="cal-dot"></div>':''}`;
+    if(events.length) d.addEventListener('click',()=>openEventDetail(events[0].id));
+    grid.appendChild(d);
+  }
+  const total=firstDay+daysInMonth;
+  const remaining=(7-total%7)%7;
+  for(let i=1;i<=remaining;i++){
+    const d=document.createElement('div'); d.className='cal-day other-month';
+    d.innerHTML=`<span class="cal-day-num">${i}</span>`; grid.appendChild(d);
+  }
+
+  // Events list — recent + upcoming
+  const list = document.getElementById('cal-events-list');
+  const today2 = todayStr();
+  const sorted = [...(state.events||[])].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+  if(!sorted.length){ list.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text-soft);font-size:13px">No events yet — tap Add Game Night!</div>'; return; }
+  list.innerHTML='';
+  sorted.forEach(ev=>{
+    const totalWins = (ev.wins||[]).reduce((s,w)=>s+w.count,0);
+    const card=document.createElement('div'); card.className='cal-event-card';
+    card.innerHTML=`
+      <div class="cal-event-date">${fmtDate(ev.date)}</div>
+      ${ev.host?`<div class="cal-event-host"><i class="ti ti-home" style="font-size:11px"></i> ${ev.host}${ev.location?' — '+ev.location:''}</div>`:''}
+      <div class="cal-event-pills">
+        <span class="stat-pill players"><i class="ti ti-users" style="font-size:10px"></i> ${(ev.attendees||ev.wins||[]).length} players</span>
+        <span class="stat-pill wins"><i class="ti ti-trophy" style="font-size:10px"></i> ${totalWins} wins</span>
+      </div>`;
+    card.addEventListener('click',()=>openEventDetail(ev.id));
+    list.appendChild(card);
+  });
+}
+
+// ── Event Modal ─────────────────────────────────────────
+const eventModalBg = document.getElementById('event-modal-bg');
+eventModalBg.addEventListener('click',e=>{ if(e.target===eventModalBg) closeEventModal(); });
+document.getElementById('event-modal-cancel').addEventListener('click',closeEventModal);
+function closeEventModal(){ eventModalBg.classList.remove('open'); }
+
+let eventEditId = null;
+
+function buildWinRow(playerId, count){
+  const row = document.createElement('div');
+  row.className='win-row';
+  const sel = document.createElement('select');
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value=''; defaultOpt.textContent='Select player…';
+  sel.appendChild(defaultOpt);
+  [...state.players].sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+    const opt=document.createElement('option');
+    opt.value=p.id; opt.textContent=p.name;
+    if(p.id===playerId) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  const numInput = document.createElement('input');
+  numInput.type='number'; numInput.min='1'; numInput.max='99';
+  numInput.value=count||''; numInput.placeholder='Wins';
+  const label = document.createElement('span');
+  label.className='win-row-label'; label.textContent='wins';
+  const removeBtn = document.createElement('button');
+  removeBtn.type='button'; removeBtn.className='win-remove-btn';
+  removeBtn.innerHTML='<i class="ti ti-x"></i>';
+  removeBtn.addEventListener('click',()=>row.remove());
+  row.appendChild(sel); row.appendChild(numInput); row.appendChild(label); row.appendChild(removeBtn);
+  row.getValues=()=>({playerId:sel.value, count:parseInt(numInput.value)||0});
+  return row;
+}
+
+function buildAttendeeRow(playerId){
+  const row = document.createElement('div');
+  row.className='win-row';
+  const sel = document.createElement('select');
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value=''; defaultOpt.textContent='Select player…';
+  sel.appendChild(defaultOpt);
+  [...state.players].sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+    const opt=document.createElement('option');
+    opt.value=p.id; opt.textContent=p.name;
+    if(p.id===playerId) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  const removeBtn = document.createElement('button');
+  removeBtn.type='button'; removeBtn.className='win-remove-btn';
+  removeBtn.innerHTML='<i class="ti ti-x"></i>';
+  removeBtn.addEventListener('click',()=>row.remove());
+  row.appendChild(sel); row.appendChild(removeBtn);
+  row.getValue=()=>sel.value;
+  return row;
+}
+
+document.getElementById('add-attendee-btn').addEventListener('click',()=>{
+  if(!state.players.length){ alert('Add players first!'); return; }
+  document.getElementById('attendee-rows').appendChild(buildAttendeeRow(null));
+});
+
+document.getElementById('add-win-row-btn').addEventListener('click',()=>{
+  if(!state.players.length){ alert('Add players first!'); return; }
+  document.getElementById('win-rows').appendChild(buildWinRow(null,null));
+});
+
+function openEventModal(editId){
+  eventEditId = editId||null;
+  const existing = editId ? (state.events||[]).find(e=>e.id===editId) : null;
+  document.getElementById('event-modal-title').textContent = existing ? 'Edit Game Night' : 'Add Game Night';
+  const t=new Date();
+  document.getElementById('event-date').value = existing?.date || (t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'));
+  document.getElementById('event-host').value = existing?.host||'';
+  document.getElementById('event-location').value = existing?.location||'';
+  const winRows = document.getElementById('win-rows');
+  winRows.innerHTML='';
+  if(existing?.wins?.length){
+    existing.wins.forEach(w=>winRows.appendChild(buildWinRow(w.playerId,w.count)));
+  }
+  // Populate attendees
+  const attendeeRows = document.getElementById('attendee-rows');
+  attendeeRows.innerHTML='';
+  if(existing?.attendees?.length){
+    existing.attendees.forEach(pid=>attendeeRows.appendChild(buildAttendeeRow(pid)));
+  }
+  eventModalBg.classList.add('open');
+}
+
+document.getElementById('event-modal-save').addEventListener('click',function(){
+  const date = document.getElementById('event-date').value;
+  if(!date){ alert('Please select a date.'); return; }
+  const host = document.getElementById('event-host').value.trim();
+  const location = document.getElementById('event-location').value.trim();
+  const wins = [...document.getElementById('win-rows').querySelectorAll('.win-row')]
+    .map(r=>r.getValues()).filter(w=>w.playerId&&w.count>0);
+  const attendees = [...document.getElementById('attendee-rows').querySelectorAll('.win-row')]
+    .map(r=>r.getValue()).filter(Boolean);
+  if(!state.events) state.events=[];
+  if(eventEditId){
+    const ev=state.events.find(x=>x.id===eventEditId);
+    if(ev){ ev.date=date; ev.host=host; ev.location=location; ev.wins=wins; ev.attendees=attendees; }
+  } else {
+    state.events.push({id:uid(),date,host,location,wins,attendees});
+  }
+  save().catch(e=>console.warn(e));
+  closeEventModal();
+  renderCalendar();
+  renderInsights();
+});
+
+// ── Event Detail ────────────────────────────────────────
+const eventDetailBg = document.getElementById('event-detail-bg');
+eventDetailBg.addEventListener('click',e=>{ if(e.target===eventDetailBg) closeEventDetail(); });
+document.getElementById('event-detail-close').addEventListener('click',closeEventDetail);
+function closeEventDetail(){ eventDetailBg.classList.remove('open'); }
+
+let currentEventId = null;
+document.getElementById('event-detail-edit').addEventListener('click',()=>{ closeEventDetail(); openEventModal(currentEventId); });
+document.getElementById('event-detail-delete').addEventListener('click',()=>{
+  if(confirm('Delete this event?')){
+    state.events=state.events.filter(x=>x.id!==currentEventId);
+    save().catch(e=>console.warn(e));
+    closeEventDetail();
+    renderCalendar();
+    renderInsights();
+  }
+});
+
+function openEventDetail(eventId){
+  currentEventId = eventId;
+  const ev = (state.events||[]).find(x=>x.id===eventId);
+  if(!ev) return;
+  const content = document.getElementById('event-detail-content');
+  const winsSorted = [...(ev.wins||[])].sort((a,b)=>b.count-a.count);
+  const totalWins = winsSorted.reduce((s,w)=>s+w.count,0);
+  content.innerHTML=`
+    <div class="event-detail-header">
+      <div class="event-detail-date">${fmtDate(ev.date)}</div>
+      ${ev.host?`<div class="event-detail-host"><i class="ti ti-home" style="font-size:12px"></i> ${ev.host}${ev.location?' · '+ev.location:''}</div>`:''}
+      <div style="margin-top:8px;font-size:13px;color:var(--purple-dark);font-weight:700">${totalWins} total wins · ${(ev.attendees||winsSorted).length} players</div>
+    </div>
+    ${ev.attendees&&ev.attendees.length?`<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-soft);margin-bottom:6px">Attendees (${ev.attendees.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${ev.attendees.map(pid=>{
+        const p=state.players.find(x=>x.id===pid);
+        return p?`<span style="background:var(--teal-light);color:var(--teal-dark);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">${p.name}</span>`:'';
+      }).join('')}</div>
+    </div>`:''}
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-soft);margin-bottom:8px">Win Results</div>
+    <div class="event-wins-list">
+      ${winsSorted.map((w,i)=>{
+        const player = state.players.find(p=>p.id===w.playerId);
+        return `<div class="event-win-row">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:50%;background:${i===0?'linear-gradient(135deg,#f5a623,#f7c85a)':i===1?'linear-gradient(135deg,#9e9e9e,#bdbdbd)':i===2?'linear-gradient(135deg,#cd7f32,#e8a060)':'var(--purple-light)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${i<3?'white':'var(--purple-dark)'};">${i+1}</div>
+            <div class="event-win-name">${player?.name||'Unknown'}</div>
+          </div>
+          <div class="event-win-count">${w.count} win${w.count!==1?'s':''}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  eventDetailBg.classList.add('open');
+}
+
+
+function isMonday(dateStr){
+  if(!dateStr) return false;
+  const [y,m,d]=dateStr.split('-');
+  return new Date(y,m-1,d).getDay()===1;
+}
+function getGroupWins(playerId, mondayOnly){
+  return (state.events||[]).filter(ev=>mondayOnly?isMonday(ev.date):!isMonday(ev.date))
+    .reduce((sum,ev)=>{
+      const w=(ev.wins||[]).find(x=>x.playerId===playerId);
+      return sum+(w?w.count:0);
+    },0);
+}
+function getGroupAttendance(playerId, mondayOnly){
+  return (state.events||[]).filter(ev=>mondayOnly?isMonday(ev.date):!isMonday(ev.date))
+    .reduce((sum,ev)=>sum+((ev.attendees||[]).includes(playerId)?1:0),0);
+}
+
+let currentInsightsGroup = 'monday';
+let currentAttGroup = 'monday';
+
+function setInsightsGroup(group){
+  currentInsightsGroup = group;
+  document.getElementById('insights-btn-monday').classList.toggle('active', group==='monday');
+  document.getElementById('insights-btn-other').classList.toggle('active', group==='other');
+  renderInsights();
+}
+
+function setAttGroup(group){
+  currentAttGroup = group;
+  document.getElementById('att-btn-monday').classList.toggle('active', group==='monday');
+  document.getElementById('att-btn-other').classList.toggle('active', group==='other');
+  renderAttendance();
+}
+
+// ── Insights / Leaderboard ──────────────────────────────
+function renderInsights(){
+  const list = document.getElementById('leaderboard-list');
+  const empty = document.getElementById('leaderboard-empty');
+  const isMon = currentInsightsGroup==='monday';
+  const groupEvents = (state.events||[]).filter(ev=>isMon?isMonday(ev.date):!isMonday(ev.date));
+  const groupKey = isMon ? 'monday' : 'other';
+
+  const sorted = [...state.players].map(p=>({...p, wins:getGroupWins(p.id,isMon)})).sort((a,b)=>b.wins-a.wins);
+  if(!sorted.length||sorted.every(p=>p.wins===0)){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML='';
+
+  const totalEventsInGroup = groupEvents.length;
+  const groupLabel = isMon ? 'Monday' : 'Other';
+
+  sorted.forEach((p,i)=>{
+    const rank = i+1;
+    // Use group-specific bird received tracking
+    const birdKey = groupKey+'_'+p.id;
+    const birdReceived = state.birdReceived?.[birdKey]||{};
+    const row = document.createElement('div');
+    row.className='leaderboard-row';
+    const birdsHTML = BIRD_LEVELS.map(b=>{
+      const earned = p.wins >= b.threshold;
+      const received = birdReceived[b.threshold]===true;
+      if(!earned) return `<span class="bird-badge locked">${b.emoji} ${b.label} <span style="color:var(--text-soft)">(${b.threshold-p.wins} more)</span></span>`;
+      return `<label class="bird-badge ${received?'earned':'pending'}" style="cursor:pointer;display:flex;align-items:center;gap:4px">
+        <input type="checkbox" class="bird-received-check" data-player="${p.id}" data-threshold="${b.threshold}" data-group="${groupKey}" ${received?'checked':''} style="width:14px;height:14px">
+        ${b.emoji} ${b.label} ${received?'✓ Received':'— Tap to mark received'}
+      </label>`;
+    }).join('');
+    row.innerHTML=`
+      <div class="rank-badge rank-${rank<=3?rank:'other'}">${rank<=3?['🥇','🥈','🥉'][rank-1]:rank}</div>
+      <div style="flex:1;min-width:0">
+        <div class="leaderboard-name">${p.name}</div>
+        <div style="font-size:11px;color:var(--text-soft);margin-bottom:3px">${groupLabel} nights</div>
+        <div class="bird-badges">${birdsHTML}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="leaderboard-wins">${p.wins}</div>
+        <div class="leaderboard-wins-label">wins</div>
+      </div>`;
+    row.querySelectorAll('.bird-received-check').forEach(cb=>{
+      cb.addEventListener('change',function(){
+        const pid = this.dataset.player;
+        const thresh = parseInt(this.dataset.threshold);
+        const grp = this.dataset.group;
+        const key = grp+'_'+pid;
+        if(!state.birdReceived) state.birdReceived={};
+        if(!state.birdReceived[key]) state.birdReceived[key]={};
+        state.birdReceived[key][thresh] = this.checked;
+        save().catch(e=>console.warn(e));
+        renderInsights();
+      });
+    });
+    list.appendChild(row);
+  });
+}
+
+// ── Attendance Insights ────────────────────────────────────
+function renderAttendance(){
+  const list = document.getElementById('attendance-list');
+  const empty = document.getElementById('attendance-empty');
+  const isMon = currentAttGroup==='monday';
+  const groupEvents = (state.events||[]).filter(ev=>isMon?isMonday(ev.date):!isMonday(ev.date));
+  const totalEvents = groupEvents.length;
+  const groupLabel = isMon ? 'Monday' : 'Other';
+
+  const sorted = [...state.players]
+    .map(p=>({...p, nights: getGroupAttendance(p.id,isMon)}))
+    .sort((a,b)=>b.nights-a.nights||a.name.localeCompare(b.name));
+
+  if(!sorted.length||sorted.every(p=>p.nights===0)){
+    list.innerHTML=''; empty.style.display='block'; return;
+  }
+  empty.style.display='none';
+  list.innerHTML='';
+
+  const maxNights = Math.max(...sorted.map(p=>p.nights),1);
+
+  sorted.forEach((p,i)=>{
+    const pct = totalEvents>0 ? Math.round((p.nights/totalEvents)*100) : 0;
+    const barWidth = Math.round((p.nights/maxNights)*100);
+    const row = document.createElement('div');
+    row.className='attendance-row';
+    row.innerHTML=`
+      <div class="rank-badge rank-${i<3?i+1:'other'}">${i<3?['🥇','🥈','🥉'][i]:i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:14px;font-weight:700;color:var(--navy)">${p.name}</div>
+          <div style="font-size:12px;color:var(--text-soft)">${p.nights} ${groupLabel} night${p.nights!==1?'s':''} · ${pct}%</div>
+        </div>
+        <div class="attendance-bar-wrap">
+          <div class="attendance-bar" style="width:${barWidth}%"></div>
+        </div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+// ── Init ────────────────────────────────────────────────
+load().then(()=>{
+  renderCalendar();
+  renderPlayers();
+  renderInsights();
+  renderAttendance();
+}).catch(()=>{
+  renderCalendar();
+  renderPlayers();
+  renderInsights();
+  renderAttendance();
+});
+</script>
+</body>
+</html>
